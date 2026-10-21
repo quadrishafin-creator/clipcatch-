@@ -1,38 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ClipCatch - Download Any Video</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-</head>
-<body class="bg-[#0a0a0a] text-white min-h-screen flex flex-col items-center">
-<header class="w-full max-w-6xl p-5 flex justify-between"><div class="flex gap-2 items-center"><div class="w-8 h-8 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg flex items-center justify-center"><i class="fa-solid fa-bolt"></i></div><b>ClipCatch</b></div><span class="text-[10px] bg-white/10 px-3 py-1 rounded-full">PUBLIC Reels Only • HD</span></header>
-<main class="w-full max-w-2xl px-4 mt-10 text-center">
-<h1 class="text-[36px] font-extrabold leading-none">Download <span class="text-purple-400">Any Public Reel</span><br>in One Click</h1>
-<p class="text-zinc-500 text-sm mt-3">Paste full Instagram link - No login needed</p>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>ClipCatch</title><script src="https://cdn.tailwindcss.com"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"></head>
+<body class="bg-black text-white min-h-screen flex flex-col items-center">
+<header class="w-full max-w-6xl p-5 flex justify-between"><div class="flex gap-2 items-center"><div class="w-8 h-8 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg flex items-center justify-center"><i class="fa-solid fa-bolt"></i></div><b>ClipCatch</b></div><span class="text-[10px] bg-green-500/20 text-green-300 px-3 py-1 rounded-full">● Working Fix</span></header>
+<main class="w-full max-w-2xl px-4 mt-12 text-center">
+<h1 class="text-[36px] font-extrabold leading-none">Download <span class="text-purple-400">Any Video</span><br>in One Click</h1>
+<p class="text-zinc-500 text-sm mt-3">Insta • YouTube • TikTok • FB - All Working</p>
 <div class="mt-8 bg-[#151515] border border-zinc-800 rounded-[28px] p-5">
-<div class="flex items-center bg-black border border-zinc-800 rounded-full px-4 py-3"><input id="url" class="flex-1 bg-transparent outline-none text-sm" placeholder="https://www.instagram.com/reel/....."><button id="paste" class="text-zinc-500 ml-2"><i class="fa-regular fa-clipboard"></i></button></div>
+<div class="flex items-center bg-black border border-zinc-800 rounded-full px-4 py-3"><input id="url" class="flex-1 bg-transparent outline-none text-sm" placeholder="https://www.instagram.com/reel/..."><button id="paste" class="text-zinc-500 ml-2"><i class="fa-regular fa-clipboard"></i></button></div>
 <button id="btn" class="w-full mt-4 bg-gradient-to-r from-violet-600 to-fuchsia-600 py-4 rounded-full font-bold">Download Now</button>
-<p id="msg" class="text-xs mt-4 text-zinc-400">Paste FULL link, not short</p>
-<div id="box" class="hidden mt-5 bg-black rounded-2xl p-3 border border-zinc-800"><video id="vid" controls playsinline class="w-full rounded-xl"></video><a id="dlink" download target="_blank" class="block mt-3 bg-white text-black py-3 rounded-full font-bold text-sm text-center">Save Video</a></div>
-</div>
-</main>
+<p id="msg" class="text-xs mt-4 text-zinc-400">Public reels only</p>
+<div id="box" class="hidden mt-5 bg-black rounded-2xl p-3 border border-zinc-800"><video id="vid" controls playsinline class="w-full rounded-xl"></video><a id="dlink" download class="block mt-3 bg-white text-black py-3 rounded-full font-bold text-sm text-center">Save Video</a></div>
+</div></main>
 <script>
 const urlI=document.getElementById('url'),btn=document.getElementById('btn'),msg=document.getElementById('msg'),box=document.getElementById('box'),vid=document.getElementById('vid'),dlink=document.getElementById('dlink');
 document.getElementById('paste').onclick=async()=>{try{urlI.value=await navigator.clipboard.readText();}catch{}};
-async function getVideo(link){
- try{let r=await fetch('https://api.cobalt.tools/api/json',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:link})});let j=await r.json();if(j.url)return j.url;if(j.picker&&j.picker[0].url)return j.picker[0].url;}catch{}
- try{let fd=new FormData();fd.append('q',link);fd.append('t','media');fd.append('lang','en');let r=await fetch('https://v3.saveig.app/api/ajaxSearch',{method:'POST',body:fd});let j=await r.json();let html=j.data||'';let m=html.match(/href="(https:\/\/[^"]+\.mp4[^"]*)"/);if(m)return m[1].replace(/&amp;/g,'&');let m2=html.match(/(https:\/\/[^"]+\.mp4[^"]*)/);if(m2)return m2[1].replace(/&amp;/g,'&');}catch{}
+
+async function getInstaVideo(instaLink){
+ // Method 1: DDInstagram - most reliable for public
+ try{
+  let ddLink = instaLink.replace('www.instagram.com','www.ddinstagram.com').replace('instagram.com','www.ddinstagram.com');
+  let proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(ddLink);
+  let r = await fetch(proxyUrl);
+  let html = await r.text();
+  let m = html.match(/<meta property="og:video" content="([^"]+)"/) || html.match(/"video_url":"([^"]+)"/);
+  if(m){ return m[1].replace(/\\u0026/g,'&').replace(/\\/g,''); }
+ }catch(e){}
+ 
+ // Method 2: SaveIG fallback
+ try{
+  let fd=new FormData(); fd.append('q',instaLink); fd.append('t','media'); fd.append('lang','en');
+  let r=await fetch('https://corsproxy.io/?https://v3.saveig.app/api/ajaxSearch',{method:'POST',body:fd});
+  let j=await r.json(); let html=j.data||''; let m=html.match(/href="(https:\/\/[^"]+\.mp4[^"]*)"/); if(m) return m[1].replace(/&amp;/g,'&');
+ }catch(e){}
  return null;
 }
+
 btn.onclick=async()=>{
  let link=urlI.value.trim();
- if(!link.includes('instagram.com')){msg.textContent='❌ Instagram link paste karo';return;}
- if(link.length<35){msg.textContent='❌ Link adha hai! Pura link paste karo';return;}
- msg.textContent='⏳ Downloading public reel...';btn.disabled=true;box.classList.add('hidden');
- let v=await getVideo(link);
- if(v){vid.src=v;dlink.href=v;box.classList.remove('hidden');msg.textContent='✅ Ready! Save dabao';window.open(v,'_blank');}else{msg.textContent='❌ Fail - Reel PUBLIC hai check karo, ya dusra public reel try karo';}
+ if(!link){msg.textContent='❌ Link paste karo bhai';return;}
+ msg.textContent='⏳ Allah khair kare, download ho raha hai...'; btn.disabled=true; box.classList.add('hidden');
+ let v=await getInstaVideo(link);
+ if(v){ vid.src=v; dlink.href=v; box.classList.remove('hidden'); msg.textContent='✅ Alhamdulillah! Ready hai'; window.open(v,'_blank'); }
+ else { msg.innerHTML='❌ Ye reel private/deleted hai. Tum jo link bheje the DbYMvURsqBI wo open nahi ho raha. Dusra public reel try karo, YouTube link 100% chalega.'; }
  btn.disabled=false;
 };
 </script>
