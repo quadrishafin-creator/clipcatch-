@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ClipCatch - Download Instagram, YouTube Shorts, Facebook & Snapchat Spotlight</title>
+<title>ClipCatch - Download Any Video</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body class="bg-[#0a0a0f] text-white min-h-screen">
-<header class="p-4 flex justify-between max-w-6xl mx-auto"><div class="flex gap-2 items-center"><div class="w-8 h-8 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-lg flex items-center justify-center"><i class="fa-solid fa-bolt"></i></div><b class="text-xl">ClipCatch</b></div><div class="text-xs px-3 py-1 rounded-full bg-white/10">No Watermark • HD</div></header>
+<header class="p-4 flex justify-between max-w-6xl mx-auto"><div class="flex gap-2 items-center"><div class="w-8 h-8 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-lg flex items-center justify-center"><i class="fa-solid fa-bolt"></i></div><b class="text-xl">ClipCatch</b></div><div class="text-xs px-3 py-1 rounded-full bg-white/10">No Watermark • HD • Auto Fix</div></header>
 <main class="max-w-4xl mx-auto px-4 mt-10 text-center">
 <h1 class="text-4xl md:text-6xl font-extrabold">Download <span class="bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">Any Video</span><br>in One Click</h1>
 <p class="text-zinc-400 mt-4">Instagram Reels • YouTube Shorts • Facebook • Snapchat Spotlight</p>
@@ -16,24 +16,29 @@
 <div class="flex gap-2 bg-black/50 border border-zinc-800 rounded-full p-2"><input id="urlInput" type="text" placeholder="Paste video link here..." class="flex-1 bg-transparent outline-none px-4 text-sm"><button id="pasteBtn" class="px-3 text-zinc-400"><i class="fa-regular fa-paste"></i></button></div>
 <button id="downloadBtn" class="w-full mt-4 bg-gradient-to-r from-violet-600 to-fuchsia-600 font-bold py-4 rounded-full">Download Now</button>
 <div class="flex justify-center gap-3 mt-5"><span class="w-9 h-9 rounded-full bg-gradient-to-br from-pink-500 to-yellow-500 flex items-center justify-center"><i class="fa-brands fa-instagram text-sm"></i></span><span class="w-9 h-9 rounded-full bg-red-600 flex items-center justify-center"><i class="fa-brands fa-youtube text-sm"></i></span><span class="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center"><i class="fa-brands fa-facebook text-sm"></i></span><span class="w-9 h-9 rounded-full bg-yellow-400 text-black flex items-center justify-center"><i class="fa-brands fa-snapchat text-sm"></i></span></div>
-<p id="status" class="text-xs mt-4 text-zinc-500 hidden"></p>
-<div id="result" class="hidden mt-6 bg-black/60 border border-zinc-800 rounded-2xl p-4"><video id="previewVideo" controls class="w-full rounded-xl hidden"></video><a id="dlLink" target="_blank" class="block mt-3 bg-white text-black font-bold py-3 rounded-full text-center">Save Video</a></div>
+<p id="status" class="text-xs mt-4 text-zinc-400"></p>
+<div id="result" class="hidden mt-6 bg-black/60 border border-zinc-800 rounded-2xl p-4"><video id="previewVideo" controls playsinline class="w-full rounded-xl hidden"></video><a id="dlLink" download class="block mt-3 bg-white text-black font-bold py-3 rounded-full text-center">Save Video</a></div>
 </div>
 </main>
 <script>
 const urlInput=document.getElementById('urlInput'),downloadBtn=document.getElementById('downloadBtn'),status=document.getElementById('status'),result=document.getElementById('result'),dlLink=document.getElementById('dlLink'),previewVideo=document.getElementById('previewVideo');
-document.getElementById('pasteBtn').onclick=async()=>{try{urlInput.value=await navigator.clipboard.readText();}catch{}};
+document.getElementById('pasteBtn').onclick=async()=>{try{urlInput.value=await navigator.clipboard.readText();}catch{const t=prompt('Paste link'); if(t) urlInput.value=t;}};
+const COBALT_INSTANCES = ['https://api.cobalt.tools/api/json','https://cobalt-api.kwiatekmiki.com/api/json','https://co.wuk.sh/api/json'];
+async function tryCobalt(instance, url){
+  const res = await fetch(instance, {method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({url:url, vCodec:'h264', vQuality:'1080'})});
+  const data = await res.json(); let videoUrl = data.url || data.urls?.[0]?.url || data.picker?.[0]?.url; if(!videoUrl) throw new Error('no url'); return videoUrl;
+}
 downloadBtn.onclick=async()=>{
- const url=urlInput.value.trim(); if(!url){status.textContent='Please paste a link';status.classList.remove('hidden');return;}
- status.textContent='Fetching video...';status.classList.remove('hidden');downloadBtn.textContent='Processing...';
- try{
-  const res=await fetch('https://api.cobalt.tools/api/json',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:url})});
-  const data=await res.json(); let videoUrl=data.url||data.urls?.[0]?.url||data.picker?.[0]?.url;
-  if(videoUrl){dlLink.href=videoUrl;previewVideo.src=videoUrl;previewVideo.classList.remove('hidden');result.classList.remove('hidden');status.textContent='✅ Ready!'; window.open(videoUrl,'_blank');}
-  else{status.textContent='Failed. Try public link.';}
- }catch(e){status.textContent='Error. Try again.';}
- downloadBtn.textContent='Download Now';
+ const url=urlInput.value.trim(); if(!url){status.textContent='❌ Paste link first'; return;}
+ status.textContent='🔍 Connecting...'; downloadBtn.textContent='Processing...'; downloadBtn.disabled=true; result.classList.add('hidden');
+ let finalUrl=null;
+ for(let i=0;i<COBALT_INSTANCES.length;i++){
+   try{ status.textContent=`🔄 Trying Server ${i+1}/3...`; finalUrl = await tryCobalt(COBALT_INSTANCES[i], url); if(finalUrl) break; }catch(e){ console.log('failed',i); }
+ }
+ if(finalUrl){ dlLink.href=finalUrl; previewVideo.src=finalUrl; previewVideo.classList.remove('hidden'); result.classList.remove('hidden'); status.textContent='✅ Ready! Video opened.'; window.open(finalUrl,'_blank'); }else{ status.textContent='❌ Try with PUBLIC reel link.'; }
+ downloadBtn.textContent='Download Now'; downloadBtn.disabled=false;
 };
 </script>
 </body>
-                                                                                                                                                                                                                                                                                      </html>
+</html>
+                                                                                                                                                                                                                                                  
